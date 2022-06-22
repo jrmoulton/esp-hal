@@ -10,7 +10,6 @@ pub use esp_hal_common::{
     pac,
     prelude,
     pulse_control,
-    ram,
     spi,
     utils,
     Cpu,

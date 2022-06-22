@@ -33,8 +33,11 @@ fn main() -> ! {
 
     // Disable the TIMG watchdog timer.
     let mut timer0 = Timer::new(peripherals.TIMG0);
-    let serial0 = Serial::new(peripherals.UART0).unwrap();
+    let mut serial0 = Serial::new(peripherals.UART0).unwrap();
     let mut rtc_cntl = RtcCntl::new(peripherals.RTC_CNTL);
+
+    writeln!(serial0, "Hello world!").ok();
+    esp_println::println!("Hello esp_println!");
 
     // Disable MWDT and RWDT (Watchdog) flash boot protection
     timer0.disable();
@@ -73,22 +76,15 @@ fn main() -> ! {
     }
 }
 
-#[no_mangle]
-pub fn level1_interrupt() {
+#[interrupt]
+fn GPIO() {
     unsafe {
         (&SERIAL).lock(|data| {
             let mut serial = data.borrow_mut();
             let serial = serial.as_mut().unwrap();
             writeln!(serial, "Interrupt").ok();
         });
-    }
-
-    interrupt::clear(
-        Cpu::ProCpu,
-        interrupt::CpuInterrupt::Interrupt1LevelPriority1,
-    );
-
-    unsafe {
+    
         (&BUTTON).lock(|data| {
             let mut button = data.borrow_mut();
             let button = button.as_mut().unwrap();
